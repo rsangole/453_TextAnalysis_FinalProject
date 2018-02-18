@@ -1,0 +1,13 @@
+---
+title: "EDA"
+author: "R Sangole"
+output: 
+  html_notebook: 
+    highlight: zenburn
+    theme: cerulean
+    toc_float: yes
+    toc: true
+---
+
+# Exploring full training dataset
+
