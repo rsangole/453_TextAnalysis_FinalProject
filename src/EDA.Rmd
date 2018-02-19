@@ -11,3 +11,43 @@ output:
 
 # Exploring full training dataset
 
+```{r}
+library(wordcloud2)
+library(stringr)
+```
+
+
+```{r}
+x <- training_data %>% sample_n(1e3)
+
+x %<>%
+    mutate(text = str_replace_all(text,pattern = '[.]',replacement = ' '))
+
+
+tidy_x <- x %>% 
+    unnest_tokens(word,text)
+```
+
+```{r}
+data("stop_words")
+
+tidy_x %<>% 
+    anti_join(stop_words)
+```
+
+```{r}
+tidy_x %>% 
+    count(word,sort = T)
+```
+
+```{r}
+tidy_x %>%
+  count(word, sort = TRUE) %>%
+  filter(n > 400) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+```
+
