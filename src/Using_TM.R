@@ -20,6 +20,7 @@ aviation_db <- tbl(con,'aviation_safety_training')
 # aviation_df <- aviation_db %>% head(20)
 
 text <- aviation_db %>%
+    filter(doc_id %in% sub_train_labels$doc_id) %>%
     select(text) %>%
     pull()
 

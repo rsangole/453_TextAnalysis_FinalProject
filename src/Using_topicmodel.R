@@ -52,7 +52,7 @@ training_labels %>%
 # Perhaps 6 groups
 
 dtm <- DocumentTermMatrix(docs)
-aviation_lda <- LDA(dtm, k=6, control=list(seed=1234))
+aviation_lda <- LDA(dtm, k=2, control=list(seed=1234))
 aviation_lda
 
 aviation_topics <- tidy(aviation_lda, matrix = "beta")
@@ -73,16 +73,15 @@ aviation_top_terms %>%
     facet_wrap(~ topic, scales = "free") +
     coord_flip()
 
-# beta_spread <- aviation_topics %>%
-#     mutate(topic = paste0("topic", topic)) %>%
-#     spread(topic, beta) %>%
-#     filter(topic1 > 0.01 | topic2 > 0.01 | topic3 > 0.01
-#            | topic4 > 0.01 | topic5 > 0.01 | topic6 > 0.01) %>%
-#     mutate(log_ratio_21 = log2(topic2 / topic1),
-#            log_ratio_31 = log2(topic3 / topic1),
-#            log_ratio_41 = log2(topic4 / topic1),
-#            log_ratio_51 = log2(topic5 / topic1),
-#            log_ratio_61 = log2(topic6 / topic1))
+beta_spread <- aviation_topics %>%
+    mutate(topic = paste0("topic", topic)) %>%
+    spread(topic, beta) %>%
+    filter(topic1 > 0.006 | topic2 > 0.006) %>%
+    mutate(log_ratio_21 = log2(topic2 / topic1))
+
+ggplot(beta_spread,aes(reorder(term,log_ratio_21),log_ratio_21))+
+    geom_col()+
+    coord_flip()
 
 aviation_topics %>%
     mutate(topic = paste0("topic", topic)) %>%
@@ -116,4 +115,3 @@ for (i in 1:6) {
     ggsave(filename = paste0('graphs/log_ratio_',i,'.png'), plot = p,
            device = 'png',width = 15, height = 4)
 }
-

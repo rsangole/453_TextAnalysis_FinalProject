@@ -1,5 +1,5 @@
 ---
-title: "Dataset exploration"
+title: "Aviation Safety Data : Dataset Exploration & Analysis"
 author: "R Sangole"
 date: "Feb 25 2018"
 output: 
@@ -8,5 +8,56 @@ output:
     theme: cerulean
     toc_float: yes
     toc: true
+    
 ---
+
+```{r include=FALSE}
+options(knitr.table.format = "html") 
+library(knitr)
+library(kableExtra)
+```
+
+# What's the Objective?
+
+* This is the dataset used for the SIAM 2007 Text Mining competition. 
+* This competition focused on developing text mining algorithms for document classification. 
+* The documents in question were aviation safety reports that documented one or more problems that occurred during certain flights. 
+* The goal was to label the documents with respect to the types of problems that were described. This is a subset of the Aviation Safety Reporting System (ASRS) dataset, which is publicly available.
+
+The data is obtained from [this link](https://c3.nasa.gov/dashlink/resources/138/).
+
+# Quick Look
+
+The training data looks like this:
+
+```{r}
+head(training_data,2) %>% kable(align = c('c','l')) %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+```
+
+The training data labels look like this:
+
+```{r}
+head(training_labels,2)
+```
+
+The size of the dataset is large, a total of [`r dim(training_data)`], while that of the label dataset is [`r dim(training_labels)`].
+
+
+
+```{r}
+(colSums(training_labels)+21519) %>% tail(-1) %>% as.data.frame() %>% rownames_to_column() %>% mutate(rowname=reorder(rowname,.)) %>% ggplot(aes(rowname,.))+geom_col()+coord_flip()
+```
+
+```{r}
+training_labels %>% mutate(b_and_s = ifelse(cat_b==1 & cat_s==1,T,F)) %>% count(b_and_s)
+```
+
+```{r}
+set.seed(1)
+training_labels %>% 
+    mutate(b_and_s = ifelse(cat_b==1 & cat_s==1,T,F)) %>% 
+    filter(!b_and_s) %>% 
+    sample_n(1e3) -> sub_train_labels
+```
 
