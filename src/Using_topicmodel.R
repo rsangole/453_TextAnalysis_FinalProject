@@ -4,46 +4,6 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(gridExtra)
-#
-# data("AssociatedPress")
-# AssociatedPress
-#
-# ap_lda <- LDA(AssociatedPress, k = 2, control = list(seed = 1234))
-# ap_lda
-#
-#
-# ap_topics <- tidy(ap_lda, matrix = "beta")
-# ap_topics
-#
-#
-# ap_top_terms <- ap_topics %>%
-#     group_by(topic) %>%
-#     top_n(10, beta) %>%
-#     ungroup() %>%
-#     arrange(topic, -beta)
-#
-# ap_top_terms %>%
-#     mutate(term = reorder(term, beta)) %>%
-#     ggplot(aes(term, beta, fill = factor(topic))) +
-#     geom_col(show.legend = FALSE) +
-#     facet_wrap(~ topic, scales = "free") +
-#     coord_flip()
-#
-#
-# beta_spread <- ap_topics %>%
-#     mutate(topic = paste0("topic", topic)) %>%
-#     spread(topic, beta) %>%
-#     filter(topic1 > .001 | topic2 > .001) %>%
-#     mutate(log_ratio = log2(topic2 / topic1))
-#
-# beta_spread
-#
-# ap_documents <- tidy(ap_lda, matrix = "gamma")
-# ap_documents
-#
-# tidy(AssociatedPress) %>%
-#     filter(document == 6) %>%
-#     arrange(desc(count))
 
 # Aviation Data -----------------------------------------------------------
 training_labels %>%
@@ -60,26 +20,26 @@ aviation_topics
 
 densityplot(~beta,groups=topic,aviation_topics,plot.points=F,ylim = c(-1,1000))
 
-aviation_top_terms <- aviation_topics %>%
+av_top_terms <- aviation_topics %>%
     group_by(topic) %>%
     top_n(10, beta) %>%
     ungroup() %>%
     arrange(topic, -beta)
 
-aviation_top_terms %>%
+av_top_terms %>%
     mutate(term = reorder(term, beta)) %>%
     ggplot(aes(term, beta, fill = factor(topic))) +
     geom_col(show.legend = FALSE) +
     facet_wrap(~ topic, scales = "free") +
     coord_flip()
 
-beta_spread <- aviation_topics %>%
+beta_sprd <- aviation_topics %>%
     mutate(topic = paste0("topic", topic)) %>%
     spread(topic, beta) %>%
     filter(topic1 > 0.006 | topic2 > 0.006) %>%
     mutate(log_ratio_21 = log2(topic2 / topic1))
 
-ggplot(beta_spread,aes(reorder(term,log_ratio_21),log_ratio_21))+
+ggplot(beta_sprd,aes(reorder(term,log_ratio_21),log_ratio_21))+
     geom_col()+
     coord_flip()
 
@@ -87,14 +47,14 @@ aviation_topics %>%
     mutate(topic = paste0("topic", topic)) %>%
     spread(topic, beta) %>%
     filter(topic1 > 0.01 | topic2 > 0.01 | topic3 > 0.01
-           | topic4 > 0.01 | topic5 > 0.01 | topic6 > 0.01) -> beta_spread_2
+           | topic4 > 0.01 | topic5 > 0.01 | topic6 > 0.01) -> beta_sprd_2
 
 for (i in 1:6) {
     result <- list()
     k=1
     for (j in 1:6) {
         if(i==j) next
-        temp <- beta_spread_2 %>%
+        temp <- beta_sprd_2 %>%
             select(term,
                    contains(as.character(i)),
                    contains(as.character(j)))

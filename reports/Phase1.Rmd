@@ -2,10 +2,8 @@
 title: 'Aviation Safety Data : Dataset Exploration & Analysis'
 author: "R Sangole"
 date: "Feb 25 2018"
+always_allow_html: yes
 output:
-  html_document:
-    df_print: paged
-    toc: yes
   html_notebook:
     code_folding: hide
     highlight: zenburn
@@ -14,19 +12,27 @@ output:
     toc_float: yes
 ---
 
+# Phase 1
+
 ```{r message=FALSE, warning=FALSE, include=FALSE}
-options(knitr.table.format = "html") 
+# options(knitr.table.format = "html") 
 library(knitr)
+library(wordcloud2)
 library(kableExtra)
 library(topicmodels)
+library(tm)
+library(tidyverse)
+library(magrittr)
 library(tidytext)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(gridExtra)
+load(file = '../cache/training_data.RData')
+load('../cache//training_labels.RData')
 ```
 
-# What's the Objective?
+## What's the Objective?
 
 * This is the dataset used for the SIAM 2007 Text Mining competition. 
 * This competition focused on developing text mining algorithms for document classification. 
@@ -35,24 +41,24 @@ library(gridExtra)
 
 The data is obtained from [this link](https://c3.nasa.gov/dashlink/resources/138/).
 
-# Quick look at the data
+## Quick look at the data
 
-## View the data
+### View the data
 
 The training data looks like this: two columns: 1st column is the dsid_id, and the 2nd column is the actual text. Each row represents one safety issue.
 
 ```{r}
-head(training_data,2) %>% kable(align = c('c','l')) %>% 
-    kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
+head(training_data,4) 
+#%>% kable(align = c('c','l')) %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed"))
 ```
 
 The training data labels look like this. This is the response variable in the original challenge. There are 22 total categories, and a dsid can exist in multiple categories.
 
 ```{r}
-head(training_labels,2)
+head(training_labels,4)
 ```
 
-## Observations
+### Observations
 
 * This is a very large dataset: [`r dim(training_data)`].
 * There are 22 total categories which might make things complicated.
@@ -71,7 +77,7 @@ I could simply randomly sample 100-1000 DSIDs to make things easier. But, I'll s
 A majority of issues are unique to `b` and `s`. So what I'll do is to randomly sample 200 dsids from `b` and `s` each.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-training_labels %>% mutate(b_and_s = ifelse(cat_b==1 & cat_s==1,T,F)) %>% count(b_and_s) %>% kable()
+training_labels %>% mutate(b_and_s = ifelse(cat_b==1 & cat_s==1,T,F)) %>% count(b_and_s)
 ```
 
 This will make things more managable for me, while hoping that the selected dsids have some unique underlying stucture. 
@@ -89,7 +95,7 @@ training_data %>%
     filter(doc_id %in% sub_train_labels$doc_id) -> sub_training_data
 ```
 
-## What does the raw text tell us?
+### What does the raw text tell us?
 
 If you notice the raw text itself, there's something interesting going on. Take for example the first line:
 ```{r}
@@ -138,14 +144,14 @@ sub_training_data %>%
     mutate(lower = word==str_to_lower(word)) %>% 
     filter(lower==T) %>%
     count(word, sort = T) %>%
-    filter(n > 200) %>%
+    filter(n > 150) %>%
     mutate(word = reorder(word, n)) %>%
     ggplot(aes(word, n)) +
     geom_col() +
     coord_flip()
 ```
 
-# Visualise the words
+### Visualise the words
 
 A fun way to visualize the words is a word cloud. Here's the cloud for the subsetted data.
 
@@ -159,7 +165,7 @@ sub_training_data %>%
     wordcloud2(color = 'random-dark',fontFamily = 'arial',shape = 'circle')
 ```
 
-# Topic Modeling using LDA
+## Topic Modeling using LDA
 
 To investigate if the two categories `b` and `s` are different from each other, I'm going to run an LDA with 2 categories. But first, a little bit of clean up is needed. Converting all text to lower, removing stop words, removing punctuation, and stemming the words first. Here's what a dsid looks like after these activities.
 
