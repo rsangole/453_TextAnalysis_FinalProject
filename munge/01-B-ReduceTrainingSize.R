@@ -17,24 +17,24 @@ if(config$reduce_dataset) {
     training_labels %<>%
         select(doc_id, cat_b, cat_f, cat_e, cat_l, cat_s) %>%
         rowwise() %>%
-        mutate(in_atleast_one_col = sum(cat_b, cat_f, cat_e, cat_l, cat_s)) %>%
+        mutate(in_exactly_one_col = sum(cat_b, cat_f, cat_e, cat_l, cat_s)) %>%
         ungroup() %>%
-        filter(in_atleast_one_col != -5) %>%
-        select(-in_atleast_one_col) %>%
+        filter(in_exactly_one_col == -3) %>%
+        select(-in_exactly_one_col) %>%
         mutate(
-            cat_b = ifelse(cat_b == -1, 0, 1),
-            cat_f = ifelse(cat_f == -1, 0, 1),
-            cat_e = ifelse(cat_e == -1, 0, 1),
-            cat_l = ifelse(cat_l == -1, 0, 1),
-            cat_s = ifelse(cat_s == -1, 0, 1)
+            cat_b = ifelse(cat_b == -1, F, T),
+            cat_f = ifelse(cat_f == -1, F, T),
+            cat_e = ifelse(cat_e == -1, F, T),
+            cat_l = ifelse(cat_l == -1, F, T),
+            cat_s = ifelse(cat_s == -1, F, T)
         )
 
     training_labels %<>%
         reshape2::melt(id.vars = 'doc_id') %>%
-        filter(value == 1) %>%
+        filter(value) %>%
         group_by(variable) %>%
-        sample_n(3000) %>%
-        reshape2::dcast(doc_id ~ variable, fill = 0) %>%
+        sample_n(config$sample_size) %>%
+        reshape2::dcast(doc_id ~ variable, fill = F) %>%
         tbl_df
 
     training_labels %>% colSums()
