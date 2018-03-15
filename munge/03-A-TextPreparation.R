@@ -9,49 +9,49 @@ stopwords_w_spaces <- stopwords('english') %>%
     gsub(pattern = '\'', replacement = ' ')
 taxiway_designations <- unlist(c(letters,
                                  map(letters,  ~ paste0(.x, letters))))
-
+remove_fullstop <- function(x) gsub(pattern = '\\.',replacement = ' ',x = x)
 docs %<>%
     tm_map(content_transformer(tolower)) %>%
+    tm_map(content_transformer(remove_fullstop)) %>%
     tm_map(removePunctuation) %>%
-    tm_map(stemDocument) %>%
+    # tm_map(stemDocument) %>%
     tm_map(removeNumbers) %>%
     tm_map(removeWords, stopwords_w_spaces) %>%
     tm_map(removeWords, taxiway_designations) %>%
+    tm_map(removeWords, airport_iata_codes[1:7000]) %>%
+    tm_map(removeWords, airport_iata_codes[7000:7800]) %>%
     tm_map(stripWhitespace)
-
 docs
 inspect(docs[10])
 
-dtm <- TermDocumentMatrix(docs)
-inspect(dtm)
-#
-# m <- as.matrix(dtm)
+tdm <- TermDocumentMatrix(docs)
+inspect(tdm)
+
+# m <- as.matrix(tdm)
 # m
-# v <- sort(rowSums(m),decreasing = T)
+# v <- sort(rowSums(m), decreasing = T)
 # v
-# d <- data.frame(word = names(v),freq=v)
+# d <- data.frame(word = names(v), freq = v)
 # head(d, 10)
+# wordcloud2(d[1:300, ], color = 'random-dark', fontFamily = 'arial')
 
-# wordcloud2(d[1:300,],color = 'random-dark',fontFamily = 'arial')
-
-# findFreqTerms(dtm, 10000)
-
-# findAssocs(dtm,findFreqTerms(dtm, 20000),0.3)
-#
+# findFreqTerms(tdm, 300)
+# findAssocs(tdm,findFreqTerms(tdm, 300),0.3)
 # findAssocs(dtm,'feet',0.3)
 
 tidy_test_tfidf = tibble(doc_id = meta(docs)[[1]],
                          txt = map_chr(.x = 1:length(docs),  ~ docs[.x]$content))
+head(tidy_test_tfidf)
 tidy_test_tfidf %<>%
     unnest_tokens(word, txt) %>%
     group_by(doc_id) %>%
     count(word) %>%
     ungroup() %>%
     bind_tf_idf(term = word, document = doc_id, n = n)
+tidy_test_tfidf
 
 tidy_test_tfidf %<>%
     inner_join(training_labels)
-
 tidy_test_tfidf
 
 to_plot <- tidy_test_tfidf %>%
@@ -64,33 +64,32 @@ to_plot <- tidy_test_tfidf %>%
     filter(value) %>%
     arrange(-tf_idf) %>%
     group_by(category) %>%
-    slice(1:10)
+    slice(1:20) %>%
+    ungroup()
 
 to_plot %>%
     ggplot(aes(tf, idf)) +
-    geom_point(color = 'red') +
+    geom_point(color = 'black') +
     geom_text_repel(
         aes(label = word, color = category),
         size = 3.5,
         force = 1,
-        min.segment.length = .5,
+        min.segment.length = 1.5,
         max.iter = 200
     ) +
-    theme_bw() +
-    scale_x_continuous(limits = c(0, 0.5), breaks = seq(0, 0.5, 0.05)) +
-    scale_y_continuous(limits = c(4, 7), breaks = seq(4, 7, .5))
+    # scale_x_continuous(limits = c(0.025,0.175))+
+    scale_y_continuous(limits = c(2,9))+
+    theme_bw()
 
 to_plot %>%
-    arrange(-tf_idf) %>%
     group_by(category) %>%
-    slice(1:10) %>%
+    arrange(-tf_idf) %>%
+    slice(1:20) %>%
     ggplot(aes(reorder(word, tf_idf), tf_idf)) +
     geom_bar(aes(fill = category), stat = 'identity') +
     coord_flip() +
-    facet_wrap( ~ category, scales = 'free', nrow = 3)
-
-str(dtm)
-
+    labs(y='TF IDF',x='Top words per category')+
+    facet_grid(category~.,scales = 'free')
 
 tidy_test_tfidf %>%
     select(-n) %>%
@@ -105,37 +104,35 @@ tidy_test_tfidf %>%
     slice(1:30) %>% pull(word) -> top_words
 top_words
 
-tbl_df(t(as.matrix(dtm))) %>% select(one_of(top_words)) -> smaller_table
+smaller_table <-
+    tbl_df(t(as.matrix(tdm))) %>% select(one_of(top_words))
 smaller_table
 
-# tsne.mat <- as.matrix(dtm) %>% t
-tsne.mat <- as.matrix(smaller_table)
-result <- tsne::tsne(tsne.mat,
-                     k = 3,
-                     max_iter = 500,
-                     epoch = 10,
-                     )
-head(result)
-
 docid_to_category_mapping <-
-    training_labels %>% melt('doc_id') %>% filter(value) %>% arrange(doc_id) %>% tbl_df %>% select(-value)
-
-tsne_result <- tbl_df(result) %>%
-    bind_cols(docid_to_category_mapping)
-tsne_result
-
-ggplot(tsne_result, aes(x = V1, y = V2)) +
-    geom_point(aes(color = variable))
-ggplot(tsne_result, aes(x = V2, y = V3)) +
-    geom_point(aes(color = variable))
+    training_labels %>%
+    melt('doc_id') %>%
+    filter(value) %>%
+    arrange(doc_id) %>%
+    tbl_df %>%
+    select(-value)
 
 smaller_table %<>% bind_cols(docid_to_category_mapping)
-smaller_distinct_table <- smaller_table[!duplicated(smaller_table[,1:147]),]
-docs_kept <- smaller_distinct_table %>% select(doc_id,variable)
-smaller_distinct_table %<>% select(-doc_id,-variable)
-rtsne_out <- Rtsne(as.matrix(smaller_distinct_table),dims = 3,theta = .2,verbose = T,max_iter = 2000)
+smaller_distinct_table <-
+    smaller_table[!duplicated(smaller_table[, 1:90]), ]
+docs_kept <- smaller_distinct_table %>% select(doc_id, variable)
+smaller_distinct_table %<>% select(-doc_id, -variable)
+rtsne_out <-
+    Rtsne(
+        as.matrix(smaller_distinct_table),
+        dims = 2,
+        theta = .2,
+        verbose = T,
+        max_iter = 2000
+    )
 rtsne_out <- tbl_df(rtsne_out$Y) %>% bind_cols(docs_kept)
 ggplot(rtsne_out, aes(x = V1, y = V2)) +
-    geom_point(aes(color = variable,pch=variable))
-ggplot(rtsne_out, aes(x = V1, y = V3)) +
-    geom_point(aes(color = variable,pch=variable))
+    geom_point(aes(color = variable, pch = variable),size=3) +
+    theme_bw()
+# ggplot(rtsne_out, aes(x = V1, y = V3)) +
+#     geom_point(aes(color = variable, pch = variable)) +
+#     theme_bw()

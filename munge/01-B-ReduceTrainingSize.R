@@ -1,5 +1,4 @@
 if(config$reduce_dataset) {
-    set.seed(1)
 
     # categories - b s f l e are the top 5
     # (colSums(training_labels) + 21519) %>%
@@ -15,18 +14,22 @@ if(config$reduce_dataset) {
 
     # Drop all other categories
     training_labels %<>%
-        select(doc_id, cat_b, cat_f, cat_e, cat_l, cat_s) %>%
+        # select(doc_id, cat_b, cat_f, cat_e, cat_l, cat_s) %>%
+        select(doc_id, cat_b, cat_s) %>%
         rowwise() %>%
-        mutate(in_exactly_one_col = sum(cat_b, cat_f, cat_e, cat_l, cat_s)) %>%
+        # mutate(in_exactly_one_col = sum(cat_b, cat_f, cat_e, cat_l, cat_s)) %>%
+        mutate(in_exactly_one_col = sum(cat_b, cat_s)) %>%
         ungroup() %>%
-        filter(in_exactly_one_col == -3) %>%
+        # filter(in_exactly_one_col == -3) %>%
+        filter(in_exactly_one_col == 0) %>%
         select(-in_exactly_one_col) %>%
         mutate(
             cat_b = ifelse(cat_b == -1, F, T),
-            cat_f = ifelse(cat_f == -1, F, T),
-            cat_e = ifelse(cat_e == -1, F, T),
-            cat_l = ifelse(cat_l == -1, F, T),
             cat_s = ifelse(cat_s == -1, F, T)
+            # cat_f = ifelse(cat_f == -1, F, T)
+            # cat_e = ifelse(cat_e == -1, F, T),
+            # cat_l = ifelse(cat_l == -1, F, T),
+            # cat_h = ifelse(cat_h == -1, F, T)
         )
 
     training_labels %<>%

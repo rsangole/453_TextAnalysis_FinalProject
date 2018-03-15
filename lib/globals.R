@@ -2,5 +2,5 @@
 
 add.config(
     reduce_dataset = TRUE,
-    sample_size = 100
+    sample_size = 1000
 )
