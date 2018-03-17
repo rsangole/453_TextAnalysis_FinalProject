@@ -1,4 +1,4 @@
-registerDoMC(cores = 4)
+# registerDoMC(cores = 4)
 
 training_data <- read_delim(
     file = 'data/TrainingData.txt',
@@ -12,7 +12,11 @@ training_labels <- read_csv(
     col_types = paste0(rep('i', 22), collapse = '')
 ) %>%
     rownames_to_column('doc_id') %>%
-    mutate(doc_id = as.integer(doc_id))
+    mutate(doc_id = as.integer(doc_id)) %>%
+    melt(id.vars='doc_id') %>%
+    mutate(value = ifelse(value==-1,F,T)) %>%
+    dcast(doc_id~variable) %>%
+    as.tbl()
 
 dim(training_data)
 dim(training_labels)
