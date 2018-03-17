@@ -15,6 +15,7 @@ remove_fullstop <-
              replacement = ' ',
              x = x)
     }
+remove_too_common_words <- c('aircraft','airport')
 
 docs %<>%
     tm_map(content_transformer(tolower)) %>%
@@ -23,6 +24,7 @@ docs %<>%
     # tm_map(stemDocument) %>%
     tm_map(removeNumbers) %>%
     tm_map(removeWords, stopwords_w_spaces) %>%
+    tm_map(removeWords, remove_too_common_words) %>%
     tm_map(removeWords, taxiway_designations) %>%
     tm_map(removeWords, airport_iata_codes[1:7000]) %>%
     tm_map(removeWords, airport_iata_codes[7000:7800]) %>%
@@ -47,6 +49,10 @@ tidy_text_tfidf <- tidy_text %>%
     count(category, word, sort = T) %>%
     bind_tf_idf(term = word, document = category, n = n)
 tidy_text_tfidf %>% arrange(-tf_idf)
+
+cache('category_labels')
+cache('tidy_text')
+cache('tidy_text_tfidf')
 
 # tidy_test_tfidf %<>%
 #     inner_join(training_labels)

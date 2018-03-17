@@ -27,5 +27,11 @@ tidy_text_tfidf %>%
     geom_col(show.legend = F) +
     coord_flip() +
     labs(y = 'TF IDF', x = 'Top words') +
-    facet_wrap(~category, scales = 'free')
-    # scale_y_continuous(breaks = seq(0, 12, 1))
+    facet_wrap( ~ category, scales = 'free') -> p
+facet_multiple(
+    plot = p,
+    facets = 'category',
+    ncol = 3,
+    nrow = 3,
+    scales = 'free'
+)

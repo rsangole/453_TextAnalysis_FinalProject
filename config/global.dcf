@@ -4,11 +4,11 @@ data_loading_header: FALSE
 data_ignore:
 cache_loading: TRUE
 recursive_loading: FALSE
-munging: FALSE
+munging: TRUE
 logging: FALSE
 logging_level: INFO
 load_libraries: TRUE
-libraries: reshape2, plyr, tidyverse, stringr, lubridate, lattice, corrplot, forcats, tm, tidytext, assertive, magrittr, wordcloud2, stringr, doMC, DBI, RPostgreSQL, dbplyr, SnowballC, ggrepel, topicmodels, stm
+libraries: reshape2, plyr, tidyverse, stringr, lubridate, lattice, corrplot, forcats, tm, tidytext, assertive, magrittr, wordcloud2, stringr, doMC, DBI, RPostgreSQL, dbplyr, SnowballC, ggrepel, topicmodels, stm, ggplus
 as_factors: TRUE
 data_tables: FALSE
 attach_internal_libraries: FALSE
