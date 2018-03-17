@@ -1,5 +1,5 @@
 dtm <- DocumentTermMatrix(docs)
-aviation_lda <- LDA(dtm, k=3, control=list(seed=1211))
+aviation_lda <- LDA(dtm, k=10, control=list(seed=1211))
 aviation_lda
 aviation_topics <- tidy(aviation_lda, matrix = "beta")
 aviation_topics

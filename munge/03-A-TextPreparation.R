@@ -21,7 +21,6 @@ docs %<>%
     tm_map(content_transformer(tolower)) %>%
     tm_map(content_transformer(remove_fullstop)) %>%
     tm_map(removePunctuation) %>%
-    # tm_map(stemDocument) %>%
     tm_map(removeNumbers) %>%
     tm_map(removeWords, stopwords_w_spaces) %>%
     tm_map(removeWords, remove_too_common_words) %>%

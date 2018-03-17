@@ -4,11 +4,17 @@ doc_feature_matrix <- tidy_text %>%
 
 doc_feature_matrix
 
-topic_model_tsnesearch <- stm(documents = doc_feature_matrix, K = 0, init.type = 'Spectral')
+topic_model_tsnesearch <-
+    stm(documents = doc_feature_matrix,
+        K = 0,
+        init.type = 'Spectral')
 summary(topic_model_tsnesearch)
 plot(topic_model_tsnesearch)
 
-topic_model <- stm(documents = doc_feature_matrix, K = 0, init.type = 'Spectral')
+topic_model <-
+    stm(documents = doc_feature_matrix,
+        K = 0,
+        init.type = 'Spectral')
 summary(topic_model)
 plot(topic_model)
 
@@ -25,7 +31,7 @@ tidy_beta %>%
     ggplot(aes(reorder(term, beta), beta, fill = topic)) +
     geom_col(show.legend = F) +
     coord_flip() +
-    facet_wrap( ~ topic, scales = 'free') +
+    facet_wrap(~ topic, scales = 'free') +
     labs(
         x = NULL,
         y = expression(beta),
@@ -40,7 +46,7 @@ tidy_gamma <- tidy(topic_model,
 tidy_gamma %>%
     ggplot(aes(gamma, fill = as.factor(topic))) +
     geom_histogram() +
-    facet_wrap( ~ document) +
+    facet_wrap(~ document) +
     labs(title = "Distribution of document probabilities for each topic",
          y = "Number of categories",
          x = expression(gamma))
