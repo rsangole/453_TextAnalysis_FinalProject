@@ -1,3 +1,0 @@
-library('ProjectTemplate')
-load.project()
-
